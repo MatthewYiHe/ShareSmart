@@ -3,27 +3,47 @@ const app = express();
 const PORT = 8080;
 const jwt = require("jsonwebtoken");
 
+const secretKey = "somesauce";
+
+function verifyToken(req, res, next) {
+  // Get authorization header value
+  const bearerHeader = req.headers["authorization"];
+  // Check if bearer is undefined
+  if (typeof bearerHeader !== undefined) {
+    // Split at the space, then get token
+    token = bearerHeader.split(" ")[1];
+    // Next middleware
+    next();
+  } else {
+    res.sendStatus(403);
+  };
+};
+
 // home page for testing
-app.get("/",(req, res) => {
+app.get("/api", (req, res) => {
   res.json({
-    message:"Welcome!"
+    message: "Welcome!"
   });
 });
 
-app.post("/posts", verifyToken, (req, res) => {
-  jwt.verify(token, "somesauce", (err, authData) => {
-    if(err) {
+app.post("/api/posts", verifyToken, (req, res) => {
+  jwt.verify(token, secretKey, (err, authData) => {
+    if (err) {
       res.sendStatus(403);
     } else {
-      res.json({
-        message: "You are logged in!",
-        authData
+      // sign a new fresh token if user pass the verification
+      jwt.sign({ user: authData.user }, secretKey, { expiresIn: "60s" }, (err, token) => {
+        res.json({
+          message: "You are logged in!",
+          authData,
+          token
+        });
       });
-    }
+    };
   });
 });
 
-app.post("/login",(req, res) => {
+app.post("/api/login", (req, res) => {
   //mock user
   const user = {
     id: 1,
@@ -31,7 +51,7 @@ app.post("/login",(req, res) => {
     email: "matthew@gmail.com"
   }
   // Asynchronous Sign with default
-  jwt.sign({user}, "somesauce", { expiresIn: "30s" }, (err, token) => {
+  jwt.sign({ user }, secretKey, { expiresIn: "60s" }, (err, token) => {
     res.json({
       token
     });
@@ -39,22 +59,6 @@ app.post("/login",(req, res) => {
 });
 
 
-function verifyToken(req, res, next) {
-  // Get authorization header value
-  const bearerHeader = req.headers["authorization"];
-  // Check if bearer is undefined
-  if(typeof bearerHeader !== undefined) {
-    // Split at the space, then get token
-    const bearerToken = bearerHeader.split(" ")[1];
-    token = bearerToken;
-    // Next middleware
-    next();
-  } else {
-    res.sendStatus(403);
-  }
-}
-
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}!`);
 });
-
