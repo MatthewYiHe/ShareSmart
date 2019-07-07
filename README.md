@@ -1,6 +1,6 @@
 # ShareSmart JWT
 
-A simple, secure login mechanism that returns a resuable JWT token for future access. The token should be time limited, and renewable by ativity.
+A simple, secure login mechanism that returns a resuable JWT token for future access. The token is time limited, and renewable by ativity.
 
 
 
